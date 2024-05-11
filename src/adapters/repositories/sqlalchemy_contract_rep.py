@@ -12,7 +12,9 @@ class SQLAlchemyContractRepository(ContractRepository):
         self.db_session = db
 
     @staticmethod
-    def __from_model_to_database(db_contract: Contract | None) -> ContractDataClass | None:
+    def __from_model_to_database(
+        db_contract: Contract | None,
+    ) -> ContractDataClass | None:
         if db_contract is None:
             return None
         return ContractDataClass(
@@ -21,7 +23,9 @@ class SQLAlchemyContractRepository(ContractRepository):
             erc20_version=db_contract.erc20_version,
         )
 
-    async def create_new_contract(self, contract_data: ContractDataClass) -> ContractDataClass:
+    async def create_new_contract(
+        self, contract_data: ContractDataClass
+    ) -> ContractDataClass:
         try:
             new_contract = Contract(**contract_data.to_dict())
             self.db_session.add(new_contract)

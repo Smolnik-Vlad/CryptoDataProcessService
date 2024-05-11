@@ -9,6 +9,8 @@ uvicorn = {extras = ["standard"], version = "*"}
 sqlalchemy = "*"
 pydantic-settings = "*"
 asyncpg = "*"
+alembic = "*"
+pydantic = "*"
 
 [dev-packages]
 
