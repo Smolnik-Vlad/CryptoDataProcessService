@@ -1,22 +1,26 @@
-.PHONY: build
-build: ## Build image and docker container
-	docker build -t crypt_proj-image . && docker run  -p 0.0.0.0:8000:8000 --env-file .env --name cryptoProj -v $(shell pwd):/home/appuser crypt_proj-image
+.PHONY: up
+up: ## Run docker containers
+	docker-compose up
 
-.PHONY: remove
-remove: ## Stop and delete docker container
-	docker rm -f cryptoProj
+.PHONY: down
+down: ## Stop docker containers
+	docker-compose down
+
+.PHONY: clear-image
+remove: ## Stop and delete docker container with service
+	docker image remove cryptproj-app
 
 .PHONY: logs
 logs: ## Run container logs (container must be running)
-	docker logs -f cryptoProj
+	docker logs -f CryptoProjApp
 
 .PHONY: shell
 shell: ## Run container shell (container must be running)
-	docker exec -it cryptoProj /bin/sh
+	docker exec -it CryptoProjApp /bin/sh
 
 .PHONY: linters
 linters: ## Run code linters (container must be running)
-	docker exec -it cryptoProj bash -c "black . ; isort . ; flake8"
+	docker exec -it CryptoProjApp bash -c "black . ; isort . ; flake8"
 
 .PHONY: help
 help: ## Show this help instruction

@@ -36,4 +36,5 @@ COPY . .
 
 EXPOSE 8000
 
+# доделать чтобы автоматически делались миграции
 ENTRYPOINT dumb-init python -m uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload --access-log --log-config src/logging.conf

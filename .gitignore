@@ -68,3 +68,4 @@ target/
 migrations/
 .env
 .cache/
+.bash_history
