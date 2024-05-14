@@ -69,3 +69,5 @@ migrations/
 .env
 .cache/
 .bash_history
+try.py
+web3_testing.py

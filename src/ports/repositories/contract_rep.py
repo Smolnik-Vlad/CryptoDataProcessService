@@ -10,3 +10,7 @@ class ContractRepository(ABC):
         self, contract_data: ContractDataClass
     ) -> ContractDataClass:
         pass
+
+    @abstractmethod
+    async def get_contract_by_address(self, address) -> ContractDataClass:
+        pass

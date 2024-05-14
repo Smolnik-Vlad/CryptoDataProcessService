@@ -11,6 +11,8 @@ pydantic-settings = "*"
 asyncpg = "*"
 alembic = "*"
 pydantic = "*"
+requests = "*"
+web3 = "*"
 
 [dev-packages]
 
