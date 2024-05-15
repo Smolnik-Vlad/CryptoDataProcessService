@@ -71,3 +71,5 @@ migrations/
 .bash_history
 try.py
 web3_testing.py
+.solcx
+help.txt

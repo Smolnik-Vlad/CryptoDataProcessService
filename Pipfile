@@ -13,6 +13,8 @@ alembic = "*"
 pydantic = "*"
 requests = "*"
 web3 = "*"
+py-solc-x = "*"
+py-solc = "*"
 
 [dev-packages]
 

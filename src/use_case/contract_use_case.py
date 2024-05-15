@@ -1,10 +1,12 @@
-
+import solcx
+from solcx import compile_source
 
 from src.dataclasses.contract_data_classes import ContractDataClass
 from src.dataclasses.contract_request_dataclass import ContractRequestDataClass
 from src.ports.repositories.contract_rep import ContractRepository
 from src.ports.repositories.contract_request_service import \
     ContractRequestService
+from src.use_case.constants import erc20_methods
 
 LIST_OF_CONTRACT_ADDRESSES = [
     "0xdAC17F958D2ee523a2206206994597C13D831ec7",
@@ -43,8 +45,54 @@ class ContractUseCase:
                 contract_address=address,
                 source_code=contract.result.SourceCode,
                 erc20_version=contract.result.CompilerVersion,
+                contract_name=contract.result.ContractName,
             )
             if not await self.__contract_repository.get_contract_by_address(address):
                 res = await self.__contract_repository.create_new_contract(data)
                 saved_contract_data.append(res)
         return saved_contract_data
+
+    async def check_contract_for_validation(self, contract_address: str):
+
+        contract_data = await self.__contract_repository.get_contract_by_address(
+            contract_address, source_code=True
+        )
+        print(solcx.get_solc_version())
+        compiled_contract = compile_source(contract_data.source_code)
+        contract_interface = compiled_contract[f"<stdin>:{contract_data.contract_name}"]
+        contract_methods = {
+            method["name"]: {"inputs": method["inputs"], "outputs": method["outputs"]}
+            for method in contract_interface["abi"]
+            if method["type"] == "function"
+        }
+
+        for method_name, method_params in erc20_methods.items():
+            if method_name not in contract_methods:
+                return False
+
+            if len(contract_methods[method_name]["inputs"]) != len(
+                method_params["inputs"]
+            ) or len(contract_methods[method_name]["outputs"]) != len(
+                method_params["outputs"]
+            ):
+                return False
+
+            for i in range(len(method_params["inputs"])):
+                if (
+                    contract_methods[method_name]["inputs"][i]["type"]
+                    != method_params["inputs"][i]["type"]
+                ):
+                    return False
+
+            for i in range(len(method_params["outputs"])):
+                if (
+                    contract_methods[method_name]["outputs"][i]["type"]
+                    != method_params["outputs"][i]["type"]
+                ):
+                    return False
+        print("It is possible")
+        return True
+        # print(solcx.get_installable_solc_versions())
+
+    async def get_all_contact_addresses(self):
+        return await self.__contract_repository.get_all_contract_addresses()

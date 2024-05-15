@@ -13,17 +13,27 @@ class SQLAlchemyContractRepository(ContractRepository):
 
     @staticmethod
     def __from_model_to_dataclass(
-        db_contract: Contract | None,
+        db_contract: Contract | None, source_code: bool = False
     ) -> ContractDataClass | None:
         if db_contract is None:
             return None
         return ContractDataClass(
             contract_address=db_contract.contract_address,
             erc20_version=db_contract.erc20_version,
+            contract_name=db_contract.contract_name,
+            source_code=db_contract.source_code if source_code else None,
         )
 
+    async def get_all_contract_addresses(self):
+        query = select(Contract.contract_address)
+        res = await self.db_session.execute(query)
+        addresses = res.scalars().all()
+        return addresses
+
     async def get_contract_by_address(
-        self, contract_address: str
+        self,
+        contract_address: str,
+        source_code: bool = False,
     ) -> ContractDataClass | None:
 
         try:
@@ -32,7 +42,7 @@ class SQLAlchemyContractRepository(ContractRepository):
             )
             res = await self.db_session.execute(query)
             contract = res.scalar()
-            user_result = self.__from_model_to_dataclass(contract)
+            user_result = self.__from_model_to_dataclass(contract, source_code)
             return user_result
 
         except exc.SQLAlchemyError:

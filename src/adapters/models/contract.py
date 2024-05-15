@@ -11,3 +11,4 @@ class Contract(Base):
     )
     source_code = mapped_column(Text, nullable=False)
     erc20_version: Mapped[str] = mapped_column(String(50), nullable=False)
+    contract_name: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)

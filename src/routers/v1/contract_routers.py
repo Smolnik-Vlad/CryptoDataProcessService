@@ -17,3 +17,20 @@ async def create_contract(
 ):
     new_contract = await contract_use_case.add_contracts(list_of_contracts)
     return new_contract
+
+
+@contract_router.get("/contract-addresses", status_code=status.HTTP_200_OK)
+async def get_contract_addresses(
+    contract_use_case: ContractUseCase = Depends(get_contract_use_case),
+):
+    addresses = await contract_use_case.get_all_contact_addresses()
+    return addresses
+
+
+@contract_router.get("/check_contract", status_code=status.HTTP_200_OK)
+async def check_contract(
+    contract_address: str,
+    contract_use_case: ContractUseCase = Depends(get_contract_use_case),
+):
+    result = await contract_use_case.check_contract_for_validation(contract_address)
+    return {"message": result}
