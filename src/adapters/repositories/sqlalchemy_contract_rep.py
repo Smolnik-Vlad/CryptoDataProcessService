@@ -1,4 +1,4 @@
-from sqlalchemy import exc, select
+from sqlalchemy import exc, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.adapters.models.contract import Contract
@@ -55,5 +55,24 @@ class SQLAlchemyContractRepository(ContractRepository):
             new_contract = Contract(**contract_data.to_dict())
             self.db_session.add(new_contract)
             return self.__from_model_to_dataclass(new_contract)
+        except exc.SQLAlchemyError:
+            raise DatabaseException
+
+    async def update_contract(
+        self, contract_data: ContractDataClass
+    ) -> ContractDataClass:
+        try:
+            print(contract_data.erc20_version)
+            query = (
+                update(Contract)
+                .where(contract_data.contract_address == Contract.contract_address)
+                .values(erc20_version=contract_data.erc20_version)
+                .returning(Contract)
+            )
+            res = await self.db_session.execute(query)
+            res = res.scalar()
+            print(res)
+            contract_result = self.__from_model_to_dataclass(res)
+            return contract_result
         except exc.SQLAlchemyError:
             raise DatabaseException

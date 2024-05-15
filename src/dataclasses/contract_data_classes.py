@@ -12,7 +12,7 @@ class DataClassFunctionality(ABC):
 
 @dataclass
 class ContractDataClass(DataClassFunctionality):
-    contract_address: str
-    erc20_version: str
-    contract_name: str
+    contract_address: str | None = None
+    contract_name: str | None = None
+    erc20_version: str | None = None
     source_code: str | None = None

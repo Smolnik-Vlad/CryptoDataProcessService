@@ -32,5 +32,7 @@ async def check_contract(
     contract_address: str,
     contract_use_case: ContractUseCase = Depends(get_contract_use_case),
 ):
-    result = await contract_use_case.check_contract_for_validation(contract_address)
+    result = await contract_use_case.check_contract_for_validation_and_create_tag(
+        contract_address
+    )
     return {"message": result}

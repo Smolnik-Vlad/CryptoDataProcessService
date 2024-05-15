@@ -1,4 +1,6 @@
-import solcx
+import hashlib
+import json
+
 from solcx import compile_source
 
 from src.dataclasses.contract_data_classes import ContractDataClass
@@ -12,8 +14,6 @@ LIST_OF_CONTRACT_ADDRESSES = [
     "0xdAC17F958D2ee523a2206206994597C13D831ec7",
     "0xB8c77482e45F1F44dE1745F52C74426C631bDD52",
     "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
-    "0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84",
-    "0x582d872A1B094FC48F5DE31D3B73F2D9bE47def1",
 ]
 
 
@@ -44,7 +44,6 @@ class ContractUseCase:
             data = ContractDataClass(
                 contract_address=address,
                 source_code=contract.result.SourceCode,
-                erc20_version=contract.result.CompilerVersion,
                 contract_name=contract.result.ContractName,
             )
             if not await self.__contract_repository.get_contract_by_address(address):
@@ -52,20 +51,8 @@ class ContractUseCase:
                 saved_contract_data.append(res)
         return saved_contract_data
 
-    async def check_contract_for_validation(self, contract_address: str):
-
-        contract_data = await self.__contract_repository.get_contract_by_address(
-            contract_address, source_code=True
-        )
-        print(solcx.get_solc_version())
-        compiled_contract = compile_source(contract_data.source_code)
-        contract_interface = compiled_contract[f"<stdin>:{contract_data.contract_name}"]
-        contract_methods = {
-            method["name"]: {"inputs": method["inputs"], "outputs": method["outputs"]}
-            for method in contract_interface["abi"]
-            if method["type"] == "function"
-        }
-
+    @staticmethod
+    def __check_contract_for_validation(contract_methods):
         for method_name, method_params in erc20_methods.items():
             if method_name not in contract_methods:
                 return False
@@ -90,9 +77,41 @@ class ContractUseCase:
                     != method_params["outputs"][i]["type"]
                 ):
                     return False
-        print("It is possible")
         return True
-        # print(solcx.get_installable_solc_versions())
+
+    async def check_contract_for_validation_and_create_tag(self, contract_address: str):
+
+        contract_data = await self.__contract_repository.get_contract_by_address(
+            contract_address, source_code=True
+        )
+        compiled_contract = compile_source(contract_data.source_code)
+        contract_interface = compiled_contract[f"<stdin>:{contract_data.contract_name}"]
+        contract_methods = {
+            method["name"]: {"inputs": method["inputs"], "outputs": method["outputs"]}
+            for method in contract_interface["abi"]
+            if method["type"] == "function"
+        }
+
+        if self.__check_contract_for_validation(contract_methods):
+            sorted_contract_methods = {
+                k: contract_methods[k] for k in sorted(contract_methods)
+            }
+
+            contract_methods_json = json.dumps(
+                sorted_contract_methods, separators=(",", ":"), sort_keys=True
+            )
+
+            hash_object = hashlib.sha256(contract_methods_json.encode())
+            hashed_string = hash_object.hexdigest()
+
+            await self.__contract_repository.update_contract(
+                ContractDataClass(
+                    contract_address=contract_address,
+                    erc20_version=hashed_string,
+                )
+            )
+
+            return hashed_string
 
     async def get_all_contact_addresses(self):
         return await self.__contract_repository.get_all_contract_addresses()

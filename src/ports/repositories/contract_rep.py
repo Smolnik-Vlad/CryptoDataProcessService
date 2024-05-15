@@ -20,3 +20,9 @@ class ContractRepository(ABC):
         self, address, source_code: bool
     ) -> ContractDataClass:
         pass
+
+    @abstractmethod
+    async def update_contract(
+        self, contract_data: ContractDataClass
+    ) -> ContractDataClass:
+        pass
